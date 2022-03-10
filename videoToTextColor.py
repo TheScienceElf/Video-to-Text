@@ -20,7 +20,8 @@ def setColor (bg, fg):
 black = setColor(16, 16)
 
 # Load in color lookup table data
-lerped = pickle.load(open("colors.pkl", "rb"))
+with open("colors.pkl", "rb") as f:
+    lerped = pickle.load(f)
 LUT = np.load("LUT.npy")
 
 # Convert an RGB image to a stream of text with ANSI color codes
