@@ -14,6 +14,8 @@ A sample image converted to text and printed to the terminal.
 
 **Note:** To run these programs, you will need Python 3 installed, alongside NumPy and OpenCV (for image I/O).
 
+Install these dependencies by running `pip install -r requirements.txt`.
+
 ## Displaying Images as Text
 
 The python script imageToTextColor.py will print an image file provided as an argument as text to the terminal.
