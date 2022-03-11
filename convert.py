@@ -20,15 +20,15 @@ cap = cv2.VideoCapture('vid.mp4')
 frames = []
 
 # Our characters, and their approximate brightness values
-CHARSET = " ,(S#g@"
+CHARSET = ' ,(S#g@'
 LEVELS = [0.000, 1.060, 2.167, 3.036, 3.977, 4.730, 6.000]
 NUMCHARS = len(CHARSET)
 
 
 def process_frame(scaled):
-    """
+    '''
         Converts a greyscale video frame into a dithered 7-color frame
-    """
+    '''
     
     reduced = scaled * 6. / 255
     
@@ -57,9 +57,9 @@ def process_frame(scaled):
     return out
 
 def frame_to_str(frame):
-    """
+    '''
         Prints out a frame in ASCII
-    """
+    '''
 
     line = ''
     
@@ -71,14 +71,14 @@ def frame_to_str(frame):
     return line
 
 def compute_markov(frame):
-    """
+    '''
         Compute the prediction matrix for each character combination
         Each row in this matrix corresponds with a character, and lists
         in decreasing order, the next most likely character to follow this one
 
         We also convert the provided frame to this new markov encoding, and provide
         the count of each prediction rank to be passed to the huffman encoding
-    """
+    '''
 
     mat = np.zeros((NUMCHARS, NUMCHARS)).astype(np.uint16)
 
@@ -114,9 +114,9 @@ def compute_markov(frame):
     return out, ranks, cnt
 
 def compute_huffman(cnts):
-    """
+    '''
         Computes Huffman encodings based on the counts of each number in the frame
-    """
+    '''
 
     codes = []
     sizes = []
@@ -165,10 +165,10 @@ def compute_huffman(cnts):
 
 
 def convert_huffman(markov_frame, codes):
-    """
+    '''
         Take a markov frame and an array of huffman encodings, and create an array of
         bytes corresponding to the compressed frame
-    """
+    '''
 
     out = ''
 
@@ -180,7 +180,7 @@ def convert_huffman(markov_frame, codes):
     
     # Pad this bit-string to be byte-aligned
     padding = (8 - (len(out) % 8)) % 8
-    out += "0" * padding
+    out += '0' * padding
 
     # Convert each octet to a char
     compressed = []
@@ -189,7 +189,7 @@ def convert_huffman(markov_frame, codes):
         char = 0
         for bit in range(8):
             char *= 2
-            if byte[bit] == "1":
+            if byte[bit] == '1':
                 char += 1
 
         compressed.append(char)
@@ -197,9 +197,9 @@ def convert_huffman(markov_frame, codes):
     return compressed
 
 def encode_matrix(ranks):
-    """
+    '''
         Converts a rank matrix into a binary format to be stored in the output file
-    """
+    '''
 
     out = []
 
@@ -225,9 +225,9 @@ def encode_matrix(ranks):
     return out
 
 def encode_tree(tree):
-    """
+    '''
         Converts the huffman tree into a binary format to be stored in the output file
-    """
+    '''
 
     tree = tree[len(CHARSET):]
 

@@ -1,6 +1,6 @@
 from imgToTextColor import convert_img
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import cv2
     import sys
 
@@ -22,4 +22,4 @@ if __name__ == "__main__":
             img = cv2.resize(frame, (WIDTH, HEIGHT))
             print(convert_img(img, width=WIDTH, height=HEIGHT))
     else:
-        print("Expected video file as argument.")
+        print('Expected video file as argument.')
