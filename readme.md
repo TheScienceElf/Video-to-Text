@@ -15,7 +15,7 @@ A sample image converted to text and printed to the terminal.
 ## Displaying Images as Text
 The python script imageToTextColor.py will print an image file provided as an argument as text to the terminal.
 
-`python3 imageToTextColor.py your_image_here.jpg`
+`python3 imgToTextColor.py your_image_here.jpg`
 
 The width of the output can be configured in the header of the python file.
 
