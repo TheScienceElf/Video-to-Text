@@ -1,4 +1,4 @@
-from imgToTextColor import setColor, convertImg
+from imgToTextColor import set_color, convert_img
 
 if __name__ == "__main__":
     import numpy as np
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Our characters, and their approximate brightness values
     CHARSET = " ,(S#g@@g#S(, "
 
-    BLACK = setColor(16, 16)
+    BLACK = set_color(16, 16)
 
     # Load in color lookup table data
     with open("colors.pkl", "rb") as f:
@@ -33,6 +33,6 @@ if __name__ == "__main__":
                 break
             
             img = cv2.resize(frame, (WIDTH, HEIGHT))
-            print(convertImg(img))
+            print(convert_img(img))
     else:
         print("Expected video file as argument.")

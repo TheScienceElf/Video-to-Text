@@ -25,7 +25,7 @@ LEVELS = [0.000, 1.060, 2.167, 3.036, 3.977, 4.730, 6.000]
 NUMCHARS = len(CHARSET)
 
 
-def processFrame(scaled):
+def process_frame(scaled):
     """
         Converts a greyscale video frame into a dithered 7-color frame
     """
@@ -56,7 +56,7 @@ def processFrame(scaled):
 
     return out
 
-def toStr(frame):
+def frame_to_str(frame):
     """
         Prints out a frame in ASCII
     """
@@ -70,7 +70,7 @@ def toStr(frame):
     
     return line
 
-def computeMarkov(frame):
+def compute_markov(frame):
     """
         Compute the prediction matrix for each character combination
         Each row in this matrix corresponds with a character, and lists
@@ -113,7 +113,7 @@ def computeMarkov(frame):
     
     return out, ranks, cnt
 
-def computeHuffman(cnts):
+def compute_huffman(cnts):
     """
         Computes Huffman encodings based on the counts of each number in the frame
     """
@@ -164,7 +164,7 @@ def computeHuffman(cnts):
     return codes, tree
 
 
-def convertHuffman(markovFrame, codes):
+def convert_huffman(markov_frame, codes):
     """
         Take a markov frame and an array of huffman encodings, and create an array of
         bytes corresponding to the compressed frame
@@ -176,7 +176,7 @@ def convertHuffman(markovFrame, codes):
 
     for y in range(h):
         for x in range(w):
-            out = out + codes[markovFrame[y, x]]
+            out = out + codes[markov_frame[y, x]]
     
     # Pad this bit-string to be byte-aligned
     padding = (8 - (len(out) % 8)) % 8
@@ -196,7 +196,7 @@ def convertHuffman(markovFrame, codes):
 
     return compressed
 
-def encodeMatrix(ranks):
+def encode_matrix(ranks):
     """
         Converts a rank matrix into a binary format to be stored in the output file
     """
@@ -224,7 +224,7 @@ def encodeMatrix(ranks):
 
     return out
 
-def encodeTree(tree):
+def encode_tree(tree):
     """
         Converts the huffman tree into a binary format to be stored in the output file
     """
@@ -240,10 +240,10 @@ def encodeTree(tree):
 
 # Load all frames into memory, then convert them to greyscale and resize them to
 # our terminal dimensions
-vidFrames = []
+vid_frames = []
 while cap.isOpened():
-    if (len(vidFrames) % 500) == 0:
-        print('Loading frame %i' % len(vidFrames))
+    if (len(vid_frames) % 500) == 0:
+        print('Loading frame %i' % len(vid_frames))
     
     # Skip frames to reach target framerate
     for i in range(int(SRC_FPS / DEST_FPS)):
@@ -255,11 +255,11 @@ while cap.isOpened():
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     scaled = cv2.resize(gray, (WIDTH, HEIGHT))
     
-    vidFrames.append(scaled)
+    vid_frames.append(scaled)
 
 # Compute dithering for all frames in parallel
 print('Dithering Frames')
-frames = Parallel(n_jobs=NUM_CORES)(delayed(processFrame)(i) for i in vidFrames)
+frames = Parallel(n_jobs=NUM_CORES)(delayed(process_frame)(i) for i in vid_frames)
 
 # Compute markov and huffman encoding for all frames
 print('Encoding Frames')
@@ -268,19 +268,19 @@ size = 0
 
 with open('data', 'wb') as filehandle:
     for frame in frames:
-        markovFrame, ranks, cnts = computeMarkov(frame)
+        markov_frame, ranks, cnts = compute_markov(frame)
 
-        codes, tree = computeHuffman(cnts)
-        chars = convertHuffman(markovFrame, codes)
+        codes, tree = compute_huffman(cnts)
+        chars = convert_huffman(markov_frame, codes)
 
-        matrixData = encodeMatrix(ranks)
-        treeData = encodeTree(tree)
+        matrix_data = encode_matrix(ranks)
+        tree_data = encode_tree(tree)
 
-        filehandle.write(bytearray(matrixData))
-        filehandle.write(bytearray(treeData))
+        filehandle.write(bytearray(matrix_data))
+        filehandle.write(bytearray(tree_data))
         filehandle.write(bytearray(chars))
 
-        size += len(matrixData) + len(treeData) + len(chars)
+        size += len(matrix_data) + len(tree_data) + len(chars)
 
 # Print the size of the output file in human-readable form
 if size > 1048576:

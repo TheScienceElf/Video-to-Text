@@ -1,12 +1,12 @@
 import numpy as np
 
-def setColor (bg, fg):
+def set_color(bg, fg):
     """
         Generates a character sequence to set the foreground and background colors
     """
     return "\u001b[48;5;%s;38;5;%sm" % (bg, fg)
 
-def convertImg(img):
+def convert_img(img):
     """
         Convert an RGB image to a stream of text with ANSI color codes
     """
@@ -27,7 +27,7 @@ def convertImg(img):
 
             char = CHARSET[lerp]
         
-            line += "%s%c" % (setColor(bg, fg), char)
+            line += "%s%c" % (set_color(bg, fg), char)
         # End each line with a black background to avoid color fringe
         line += "%s\n" % BLACK
     
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # Our characters, and their approximate brightness values
     CHARSET = " ,(S#g@@g#S(, "
 
-    BLACK = setColor(16, 16)
+    BLACK = set_color(16, 16)
 
     # Load in color lookup table data
     with open("colors.pkl", "rb") as f:
@@ -64,6 +64,6 @@ if __name__ == "__main__":
         HEIGHT = int(WIDTH / (2 * aspect_ratio))
 
         img = cv2.resize(img, (WIDTH, HEIGHT))
-        print(convertImg(img))
+        print(convert_img(img))
     else:
         print("Expected image file as argument.")
