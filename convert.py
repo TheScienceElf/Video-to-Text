@@ -25,8 +25,11 @@ LEVELS = [0.000, 1.060, 2.167, 3.036, 3.977, 4.730, 6.000]
 NUMCHARS = len(CHARSET)
 
 
-# Converts a greyscale video frame into a dithered 7-color frame
 def processFrame(scaled):
+    """
+        Converts a greyscale video frame into a dithered 7-color frame
+    """
+    
     reduced = scaled * 6. / 255
     
     out = np.zeros((HEIGHT, WIDTH), dtype=np.int8)
@@ -53,8 +56,11 @@ def processFrame(scaled):
 
     return out
 
-# Prints out a frame in ASCII
 def toStr(frame):
+    """
+        Prints out a frame in ASCII
+    """
+
     line = ''
     
     for y in range(HEIGHT):
@@ -64,13 +70,16 @@ def toStr(frame):
     
     return line
 
-# Compute the prediction matrix for each character combination
-# Each row in this matrix corresponds with a character, and lists
-# in decreasing order, the next most likely character to follow this one
-#
-# We also convert the provided frame to this new markov encoding, and provide
-# the count of each prediction rank to be passed to the huffman encoding
 def computeMarkov(frame):
+    """
+        Compute the prediction matrix for each character combination
+        Each row in this matrix corresponds with a character, and lists
+        in decreasing order, the next most likely character to follow this one
+
+        We also convert the provided frame to this new markov encoding, and provide
+        the count of each prediction rank to be passed to the huffman encoding
+    """
+
     mat = np.zeros((NUMCHARS, NUMCHARS)).astype(np.uint16)
 
     h, w = frame.shape
@@ -104,8 +113,11 @@ def computeMarkov(frame):
     
     return out, ranks, cnt
 
-# Computes Huffman encodings based on the counts of each number in the frame
 def computeHuffman(cnts):
+    """
+        Computes Huffman encodings based on the counts of each number in the frame
+    """
+
     codes = []
     sizes = []
     tree = []
@@ -114,9 +126,9 @@ def computeHuffman(cnts):
         sizes.append((cnts[i], [i], i))
         tree.append((i, i))
 
-    sizes = sorted(sizes, reverse = True)
+    sizes = sorted(sizes, reverse=True)
 
-    while(len(sizes) > 1):
+    while len(sizes) > 1:
         # Take the two least frequent entries
         right = sizes.pop()
         left  = sizes.pop()
@@ -139,21 +151,25 @@ def computeHuffman(cnts):
         # Find the position in the list to inser these entries
         for insertPos in range(len(sizes) + 1):
             # Append if we hit the end of the list
-            if(insertPos == len(sizes)):
+            if insertPos == len(sizes):
                 sizes.append(new)
                 break
                 
             cnt, _, _ = sizes[insertPos]
             
-            if(cnt <= lnum + rnum):
+            if cnt <= lnum + rnum:
                 sizes.insert(insertPos, new)
                 break
 
     return codes, tree
 
-# Take a markov frame and an array of huffman encodings, and create an array of
-# bytes corresponding to the compressed frame
+
 def convertHuffman(markovFrame, codes):
+    """
+        Take a markov frame and an array of huffman encodings, and create an array of
+        bytes corresponding to the compressed frame
+    """
+
     out = ''
 
     h, w = frame.shape
@@ -164,7 +180,7 @@ def convertHuffman(markovFrame, codes):
     
     # Pad this bit-string to be byte-aligned
     padding = (8 - (len(out) % 8)) % 8
-    out += ("0" * padding)
+    out += "0" * padding
 
     # Convert each octet to a char
     compressed = []
@@ -180,8 +196,11 @@ def convertHuffman(markovFrame, codes):
 
     return compressed
 
-# Converts a rank matrix into a binary format to be stored in the output file
 def encodeMatrix(ranks):
+    """
+        Converts a rank matrix into a binary format to be stored in the output file
+    """
+
     out = []
 
     for row in ranks:
@@ -205,8 +224,11 @@ def encodeMatrix(ranks):
 
     return out
 
-# Converts the huffman tree into a binary format to be stored in the output file
 def encodeTree(tree):
+    """
+        Converts the huffman tree into a binary format to be stored in the output file
+    """
+
     tree = tree[len(CHARSET):]
 
     out = []
@@ -219,7 +241,7 @@ def encodeTree(tree):
 # Load all frames into memory, then convert them to greyscale and resize them to
 # our terminal dimensions
 vidFrames = []
-while(cap.isOpened()):
+while cap.isOpened():
     if (len(vidFrames) % 500) == 0:
         print('Loading frame %i' % len(vidFrames))
     

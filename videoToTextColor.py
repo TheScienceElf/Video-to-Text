@@ -13,8 +13,10 @@ HEIGHT = int(WIDTH / (2 * ASPECT_RATIO))
 # Our characters, and their approximate brightness values
 CHARSET = " ,(S#g@@g#S(, "
 
-# Generates a character sequence to set the foreground and background colors
 def setColor(bg, fg):
+    """
+        Generates a character sequence to set the foreground and background colors
+    """
     return "\u001b[48;5;%s;38;5;%sm" % (bg, fg)
 
 BLACK = setColor(16, 16)
@@ -24,8 +26,11 @@ with open("colors.pkl", "rb") as f:
     LERPED = pickle.load(f)
 LUT = np.load("LUT.npy")
 
-# Convert an RGB image to a stream of text with ANSI color codes
 def convertImg(img):
+    """
+        Generates a character sequence to set the foreground and background colors
+    """
+    
     line = ""
     for row in img:
         for color in row:
@@ -53,7 +58,7 @@ def convertImg(img):
 if len(sys.argv) == 2:
     cap = cv2.VideoCapture(sys.argv[1])
 
-    while(cap.isOpened()):  
+    while cap.isOpened():
         ret, frame = cap.read()
 
         if frame is None:
