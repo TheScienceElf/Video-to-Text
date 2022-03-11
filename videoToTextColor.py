@@ -62,5 +62,5 @@ if len(sys.argv) == 2:
         img = cv2.resize(frame, (WIDTH, HEIGHT))
         print(convertImg(img))
 else:
-  print("Expected video file as argument.")
+    print("Expected video file as argument.")
 
