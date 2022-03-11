@@ -243,7 +243,7 @@ def encode_tree(tree):
 vid_frames = []
 while cap.isOpened():
     if (len(vid_frames) % 500) == 0:
-        print('Loading frame %i' % len(vid_frames))
+        print(f'Loading frame {len(vid_frames)}')
     
     # Skip frames to reach target framerate
     for i in range(int(SRC_FPS / DEST_FPS)):
@@ -284,8 +284,8 @@ with open('data', 'wb') as filehandle:
 
 # Print the size of the output file in human-readable form
 if size > 1048576:
-    print('%.1f MB' % (size / 1048576))
+    print(f'{size / 1048576:.1f} MB')
 elif size > 1024:
-    print('%.1f KB' % (size / 1024))
+    print(f'{size / 1024:.1f} kB')
 else:
-    print('%i B' % (size))
+    print(f'{size} B')

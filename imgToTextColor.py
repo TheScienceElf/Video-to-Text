@@ -10,7 +10,7 @@ def set_color(bg, fg):
     """
         Generates a character sequence to set the foreground and background colors
     """
-    return "\u001b[48;5;%s;38;5;%sm" % (bg, fg)
+    return f"\u001b[48;5;{bg};38;5;{fg}m"
 
 def convert_img(img, charset=" ,(S#g@@g#S(, ", width=80, height=1):
     """
@@ -33,12 +33,12 @@ def convert_img(img, charset=" ,(S#g@@g#S(, ", width=80, height=1):
 
             char = charset[lerp]
         
-            line += "%s%c" % (set_color(bg, fg), char)
+            line += set_color(bg, fg) + char
         # End each line with a black background to avoid color fringe
         line += "\u001b[48;5;16;38;5;16m\n"
     
     # Move the cursor back to the top of the frame to prevent rolling
-    line += "\u001b[%iD\u001b[%iA" % (width, height + 1)
+    line += f"\u001b[{width}D\u001b[{height + 1}A"
     return line
 
 if __name__ == "__main__":
@@ -48,8 +48,6 @@ if __name__ == "__main__":
     # Width of the output in terminal characters
     WIDTH = 80
     HEIGHT = 1
-
-    BLACK = set_color(16, 16)
 
     if len(sys.argv) == 2:
         img = cv2.imread(sys.argv[1])
