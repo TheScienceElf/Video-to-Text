@@ -1,4 +1,10 @@
 import numpy as np
+import pickle
+
+# Load in color lookup table data
+with open("colors.pkl", "rb") as f:
+    LERPED = pickle.load(f)
+LUT = np.load("LUT.npy")
 
 def set_color(bg, fg):
     """
@@ -6,7 +12,7 @@ def set_color(bg, fg):
     """
     return "\u001b[48;5;%s;38;5;%sm" % (bg, fg)
 
-def convert_img(img):
+def convert_img(img, charset=" ,(S#g@@g#S(, ", width=80, height=1):
     """
         Convert an RGB image to a stream of text with ANSI color codes
     """
@@ -25,34 +31,25 @@ def convert_img(img):
             # Get the ANSI color codes and lerp character
             bg, fg, lerp, rgb = LERPED[idx]
 
-            char = CHARSET[lerp]
+            char = charset[lerp]
         
             line += "%s%c" % (set_color(bg, fg), char)
         # End each line with a black background to avoid color fringe
-        line += "%s\n" % BLACK
+        line += "\u001b[48;5;16;38;5;16m\n"
     
     # Move the cursor back to the top of the frame to prevent rolling
-    line += "\u001b[%iD\u001b[%iA" % (WIDTH, HEIGHT + 1)
+    line += "\u001b[%iD\u001b[%iA" % (width, height + 1)
     return line
 
 if __name__ == "__main__":
     import cv2
-    import pickle
     import sys
 
     # Width of the output in terminal characters
     WIDTH = 80
-    HEIGHT = 1 
-
-    # Our characters, and their approximate brightness values
-    CHARSET = " ,(S#g@@g#S(, "
+    HEIGHT = 1
 
     BLACK = set_color(16, 16)
-
-    # Load in color lookup table data
-    with open("colors.pkl", "rb") as f:
-        LERPED = pickle.load(f)
-    LUT = np.load("LUT.npy")
 
     if len(sys.argv) == 2:
         img = cv2.imread(sys.argv[1])
@@ -64,6 +61,6 @@ if __name__ == "__main__":
         HEIGHT = int(WIDTH / (2 * aspect_ratio))
 
         img = cv2.resize(img, (WIDTH, HEIGHT))
-        print(convert_img(img))
+        print(convert_img(img, width=WIDTH, height=HEIGHT))
     else:
         print("Expected image file as argument.")
