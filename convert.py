@@ -4,50 +4,48 @@ import time
 import multiprocessing
 from joblib import Parallel, delayed
 
-aspect_ratio = 16 / 9
+ASPECT_RATIO = 16 / 9
 
 # Dimensions of the output in terminal characters
-width = 80
-height = int(width / (2 * aspect_ratio))
+WIDTH = 80
+HEIGHT = int(WIDTH / (2 * ASPECT_RATIO))
 
 # Framerate of the source and output video
-src_FPS = 30
-dest_FPS = 15
+SRC_FPS = 30
+DEST_FPS = 15
 
 
-num_cores = multiprocessing.cpu_count()
+NUM_CORES = multiprocessing.cpu_count()
 
 cap = cv2.VideoCapture('vid.mp4')
 frames = []
 
-
 # Our characters, and their approximate brightness values
-charSet = " ,(S#g@"
-levels = [0.000, 1.060, 2.167, 3.036, 3.977, 4.730, 6.000]
-numChrs = len(charSet)
+CHARSET = " ,(S#g@"
+LEVELS = [0.000, 1.060, 2.167, 3.036, 3.977, 4.730, 6.000]
+NUMCHARS = len(CHARSET)
 
 
 # Converts a greyscale video frame into a dithered 7-color frame
 def processFrame(scaled):
     reduced = scaled * 6. / 255
     
-    out = np.zeros((height, width), dtype=np.int8)
+    out = np.zeros((HEIGHT, WIDTH), dtype=np.int8)
     
-    line = ''
-    for y in range(height):
-        for x in range(width):
+    for y in range(HEIGHT):
+        for x in range(WIDTH):
             level = min(6, max(0, int(reduced[y, x])))
             
-            error = reduced[y, x] - levels[level]
+            error = reduced[y, x] - LEVELS[level]
     
             err16 = error / 16
     
-            if (x + 1) < width:
+            if (x + 1) < WIDTH:
                 reduced[y    , x + 1] += 7 * err16
-            if (y + 1) < height:
+            if (y + 1) < HEIGHT:
                 reduced[y + 1, x    ] += 5 * err16
     
-                if (x + 1) < width:
+                if (x + 1) < WIDTH:
                     reduced[y + 1, x + 1] += 1 * err16
                 if (x - 1) > 0:
                     reduced[y + 1, x - 1] += 3 * err16
@@ -60,9 +58,9 @@ def processFrame(scaled):
 def toStr(frame):
     line = ''
     
-    for y in range(height):
-        for x in range(width):
-            line += charSet[frame[y, x]]
+    for y in range(HEIGHT):
+        for x in range(WIDTH):
+            line += CHARSET[frame[y, x]]
         line += '\n'
     
     return line
@@ -74,7 +72,7 @@ def toStr(frame):
 # We also convert the provided frame to this new markov encoding, and provide
 # the count of each prediction rank to be passed to the huffman encoding
 def computeMarkov(frame):
-    mat = np.zeros((numChrs, numChrs)).astype(np.uint16)
+    mat = np.zeros((NUMCHARS, NUMCHARS)).astype(np.uint16)
 
     h, w = frame.shape
 
@@ -88,11 +86,11 @@ def computeMarkov(frame):
 
             prevChar = char
     
-    ranks = np.zeros((numChrs, numChrs)).astype(np.uint16)
-    for i in range(numChrs):
-        ranks[i][mat[i].argsort()] = 6 - np.arange(numChrs)
+    ranks = np.zeros((NUMCHARS, NUMCHARS)).astype(np.uint16)
+    for i in range(NUMCHARS):
+        ranks[i][mat[i].argsort()] = 6 - np.arange(NUMCHARS)
 
-    cnt = np.zeros(numChrs).astype(np.uint16)
+    cnt = np.zeros(NUMCHARS).astype(np.uint16)
 
     out = np.zeros_like(frame)
     prevChar = 0
@@ -191,9 +189,9 @@ def encodeMatrix(ranks):
         encoding = 0
 
         fact = 1
-        idxs = list(range(len(charSet)))
+        idxs = list(range(len(CHARSET)))
 
-        for rank in range(len(charSet)):
+        for rank in range(len(CHARSET)):
             rank = list(row).index(rank)
             encoding += idxs.index(rank) * fact
 
@@ -210,7 +208,7 @@ def encodeMatrix(ranks):
 
 # Converts the huffman tree into a binary format to be stored in the output file
 def encodeTree(tree):
-    tree = tree[len(charSet):]
+    tree = tree[len(CHARSET):]
 
     out = []
 
@@ -227,20 +225,20 @@ while(cap.isOpened()):
         print('Loading frame %i' % len(vidFrames))
     
     # Skip frames to reach target framerate
-    for i in range(int(src_FPS / dest_FPS)):
+    for i in range(int(SRC_FPS / DEST_FPS)):
         ret, frame = cap.read()
     
     if frame is None:
         break
     
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    scaled = cv2.resize(gray, (width, height))
+    scaled = cv2.resize(gray, (WIDTH, HEIGHT))
     
     vidFrames.append(scaled)
 
 # Compute dithering for all frames in parallel
 print('Dithering Frames')
-frames = Parallel(n_jobs=num_cores)(delayed(processFrame)(i) for i in vidFrames)
+frames = Parallel(n_jobs=NUM_CORES)(delayed(processFrame)(i) for i in vidFrames)
 
 # Compute markov and huffman encoding for all frames
 print('Encoding Frames')
