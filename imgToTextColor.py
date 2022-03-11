@@ -1,62 +1,64 @@
 import numpy as np
-import cv2
 import pickle
-import sys
-
-#Width of the output in terminal characters
-width = 80
-height = 1 
-
-
-#Our characters, and their approximate brightness values
-charSet = " ,(S#g@@g#S(, "
-
-# Generates a character sequence to set the foreground and background colors
-def setColor (bg, fg):
-  return "\u001b[48;5;%s;38;5;%sm" % (bg, fg)
-
-black = setColor(16, 16)
 
 # Load in color lookup table data
-lerped =  pickle.load( open( "colors.pkl", "rb" ) )
-LUT = np.load("LUT.npy")
+with open('colors.pkl', 'rb') as f:
+    LERPED = pickle.load(f)
+LUT = np.load('LUT.npy')
 
-# Convert an RGB image to a stream of text with ANSI color codes
-def convertImg(img):
-  line = ""
-  
-  for row in img:
-    for color in row:
-      color = np.round(color).astype(int)
+def set_color(bg, fg):
+    '''
+        Generates a character sequence to set the foreground and background colors
+    '''
+    return f'\u001b[48;5;{bg};38;5;{fg}m'
 
-      b, g, r = color[0], color[1], color[2]
+def convert_img(img, charset=' ,(S#g@@g#S(, ', width=80, height=1):
+    '''
+        Convert an RGB image to a stream of text with ANSI color codes
+    '''
+    
+    line = ''
+    
+    for row in img:
+        for color in row:
+            color = np.round(color).astype(int)
 
-      # Lookup the color index in the RGB lookup table
-      idx = LUT[b, g, r]
-  
-      # Get the ANSI color codes and lerp character
-      bg, fg, lerp, rgb = lerped[idx]
+            b, g, r = color[0], color[1], color[2]
 
-      char = charSet[lerp]
-  
-      line += "%s%c" % (setColor(bg, fg), char)
-    # End each line with a black background to avoid color fringe
-    line += "%s\n" % black
-  
-  # Move the cursor back to the top of the frame to prevent rolling
-  line += "\u001b[%iD\u001b[%iA" % (width, height + 1)
-  return line
+            # Lookup the color index in the RGB lookup table
+            idx = LUT[b, g, r]
+        
+            # Get the ANSI color codes and lerp character
+            bg, fg, lerp, rgb = LERPED[idx]
 
-if len(sys.argv) == 2:
-  img = cv2.imread(sys.argv[1])
+            char = charset[lerp]
+        
+            line += set_color(bg, fg) + char
+        # End each line with a black background to avoid color fringe
+        line += '\u001b[48;5;16;38;5;16m\n'
+    
+    # Move the cursor back to the top of the frame to prevent rolling
+    line += f'\u001b[{width}D\u001b[{height + 1}A'
+    return line
 
-  # Match the aspect ratio to that of the provided image
-  src_height, src_width, _ = img.shape
+if __name__ == '__main__':
+    import cv2
+    import sys
 
-  aspect_ratio = src_width / src_height
-  height = int(width / (2 * aspect_ratio))
+    # Width of the output in terminal characters
+    WIDTH = 80
+    HEIGHT = 1
 
-  img = cv2.resize(img, (width, height))
-  print(convertImg(img))
-else:
-  print("Expected image file as argument.")
+    if len(sys.argv) == 2:
+        img = cv2.imread(sys.argv[1])
+
+        # Match the aspect ratio to that of the provided image
+        src_height, src_width, _ = img.shape
+
+        aspect_ratio = src_width / src_height
+        HEIGHT = int(WIDTH / (2 * aspect_ratio))
+
+        img = cv2.resize(img, (WIDTH, HEIGHT))
+        print(convert_img(img, width=WIDTH, height=HEIGHT))
+    else:
+        print('Expected image file as argument.')
