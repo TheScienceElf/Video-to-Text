@@ -11,7 +11,10 @@ if __name__ == '__main__':
     HEIGHT = int(WIDTH / (2 * ASPECT_RATIO))
 
     if len(sys.argv) == 2:
-        cap = cv2.VideoCapture(sys.argv[1])
+        if sys.argv[1].startswith("cam:"):
+            cap = cv2.VideoCapture(int(sys.argv[1][4:]))
+        else:
+            cap = cv2.VideoCapture(sys.argv[1])
 
         while cap.isOpened():
             ret, frame = cap.read()
@@ -22,4 +25,4 @@ if __name__ == '__main__':
             img = cv2.resize(frame, (WIDTH, HEIGHT))
             print(convert_img(img, width=WIDTH, height=HEIGHT))
     else:
-        print('Expected video file as argument.')
+        print('Expected video file or webcam ID ("cam:n", where n is the camera index, starting with 0) as argument.')
