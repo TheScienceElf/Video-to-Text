@@ -29,32 +29,33 @@ def process_frame(scaled):
     '''
         Converts a greyscale video frame into a dithered 7-color frame
     '''
-    
+
     reduced = scaled * 6. / 255
-    
+
     out = np.zeros((HEIGHT, WIDTH), dtype=np.int8)
-    
+
     for y in range(HEIGHT):
         for x in range(WIDTH):
             level = min(6, max(0, int(reduced[y, x])))
-            
+
             error = reduced[y, x] - LEVELS[level]
-    
+
             err16 = error / 16
-    
+
             if (x + 1) < WIDTH:
-                reduced[y    , x + 1] += 7 * err16
+                reduced[y, x + 1] += 7 * err16
             if (y + 1) < HEIGHT:
-                reduced[y + 1, x    ] += 5 * err16
-    
+                reduced[y + 1, x] += 5 * err16
+
                 if (x + 1) < WIDTH:
                     reduced[y + 1, x + 1] += 1 * err16
                 if (x - 1) > 0:
                     reduced[y + 1, x - 1] += 3 * err16
-            
+
             out[y, x] = level
 
     return out
+
 
 def frame_to_str(frame):
     '''
@@ -62,22 +63,25 @@ def frame_to_str(frame):
     '''
 
     line = ''
-    
+
     for y in range(HEIGHT):
         for x in range(WIDTH):
             line += CHARSET[frame[y, x]]
         line += '\n'
-    
+
     return line
+
 
 def compute_markov(frame):
     '''
         Compute the prediction matrix for each character combination
         Each row in this matrix corresponds with a character, and lists
-        in decreasing order, the next most likely character to follow this one
+        in decreasing order, the next most likely character to follow
+        this one
 
-        We also convert the provided frame to this new markov encoding, and provide
-        the count of each prediction rank to be passed to the huffman encoding
+        We also convert the provided frame to this new markov encoding,
+        and provide the count of each prediction rank to be passed
+        to the huffman encoding
     '''
 
     mat = np.zeros((NUMCHARS, NUMCHARS)).astype(np.uint16)
@@ -93,7 +97,7 @@ def compute_markov(frame):
             mat[prevChar, char] += 1
 
             prevChar = char
-    
+
     ranks = np.zeros((NUMCHARS, NUMCHARS)).astype(np.uint16)
     for i in range(NUMCHARS):
         ranks[i][mat[i].argsort()] = 6 - np.arange(NUMCHARS)
@@ -110,12 +114,14 @@ def compute_markov(frame):
             cnt[out[y, x]] += 1
 
             prevChar = char
-    
+
     return out, ranks, cnt
+
 
 def compute_huffman(cnts):
     '''
-        Computes Huffman encodings based on the counts of each number in the frame
+        Computes Huffman encodings based on the counts of
+        each number in the frame
     '''
 
     codes = []
@@ -131,7 +137,7 @@ def compute_huffman(cnts):
     while len(sizes) > 1:
         # Take the two least frequent entries
         right = sizes.pop()
-        left  = sizes.pop()
+        left = sizes.pop()
 
         (lnum, lchars, ltree) = left
         (rnum, rchars, rtree) = right
@@ -154,9 +160,9 @@ def compute_huffman(cnts):
             if insertPos == len(sizes):
                 sizes.append(new)
                 break
-                
+
             cnt, _, _ = sizes[insertPos]
-            
+
             if cnt <= lnum + rnum:
                 sizes.insert(insertPos, new)
                 break
@@ -166,8 +172,9 @@ def compute_huffman(cnts):
 
 def convert_huffman(markov_frame, codes):
     '''
-        Take a markov frame and an array of huffman encodings, and create an array of
-        bytes corresponding to the compressed frame
+        Take a markov frame and an array of huffman encodings,
+        and create an array of bytes corresponding to
+        the compressed frame
     '''
 
     out = ''
@@ -177,7 +184,7 @@ def convert_huffman(markov_frame, codes):
     for y in range(h):
         for x in range(w):
             out = out + codes[markov_frame[y, x]]
-    
+
     # Pad this bit-string to be byte-aligned
     padding = (8 - (len(out) % 8)) % 8
     out += '0' * padding
@@ -196,9 +203,11 @@ def convert_huffman(markov_frame, codes):
 
     return compressed
 
+
 def encode_matrix(ranks):
     '''
-        Converts a rank matrix into a binary format to be stored in the output file
+        Converts a rank matrix into a binary format to be stored in
+        the output file
     '''
 
     out = []
@@ -215,18 +224,20 @@ def encode_matrix(ranks):
 
             fact *= len(idxs)
             idxs.remove(rank)
-        
+
         low_byte = int(encoding) % 256
         high_byte = (encoding - low_byte) // 256
-        
+
         out.append(high_byte)
         out.append(low_byte)
 
     return out
 
+
 def encode_tree(tree):
     '''
-        Converts the huffman tree into a binary format to be stored in the output file
+        Converts the huffman tree into a binary format to be stored in
+        the output file
     '''
 
     tree = tree[len(CHARSET):]
@@ -238,28 +249,30 @@ def encode_tree(tree):
 
     return out
 
-# Load all frames into memory, then convert them to greyscale and resize them to
-# our terminal dimensions
+
+# Load all frames into memory, then convert them to greyscale
+# and resize them to our terminal dimensions
 vid_frames = []
 while cap.isOpened():
     if (len(vid_frames) % 500) == 0:
         print(f'Loading frame {len(vid_frames)}')
-    
+
     # Skip frames to reach target framerate
     for i in range(int(SRC_FPS / DEST_FPS)):
         ret, frame = cap.read()
-    
+
     if frame is None:
         break
-    
+
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     scaled = cv2.resize(gray, (WIDTH, HEIGHT))
-    
+
     vid_frames.append(scaled)
 
 # Compute dithering for all frames in parallel
 print('Dithering Frames')
-frames = Parallel(n_jobs=NUM_CORES)(delayed(process_frame)(i) for i in vid_frames)
+frames = Parallel(n_jobs=NUM_CORES)
+(delayed(process_frame)(i)for i in vid_frames)
 
 # Compute markov and huffman encoding for all frames
 print('Encoding Frames')

@@ -21,8 +21,9 @@ if __name__ == '__main__':
 
             if frame is None:
                 break
-            
+
             img = cv2.resize(frame, (WIDTH, HEIGHT))
             print(convert_img(img, width=WIDTH, height=HEIGHT))
     else:
-        print('Expected video file or webcam ID ("cam:n", where n is the camera index, starting with 0) as argument.')
+        print('Expected video file or webcam ID ("cam:n", \
+              where n is the camera index, starting with 0) as argument.')
