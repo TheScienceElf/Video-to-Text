@@ -30,7 +30,7 @@ The width and aspect ratio of the output can be configured in the header of the 
 ## Creating Video Playback Executables
 The provided makefile allows building programs which will play the compressed text encoding of the video stored in the executable. The target video should be named `vid.mp4`, otherwise the path to the video can be changed in the header of convert.py.
 
-To build for Linux targets (using GCC) run 
+To build for Linux & MacOS targets (using GCC) run 
 
 `make playback`
 
