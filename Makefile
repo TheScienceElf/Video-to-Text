@@ -8,9 +8,11 @@ data.h:
 
 playback: playback.c data.h
 	gcc $(CFLAGS) -o playback playback.c
+	strip $(@)
 
 playback.exe: playback.c data.h
 	i686-w64-mingw32-gcc $(CFLAGS) -o playback.exe playback.c
+	i686-w64-mingw32-strip $(@)
 
 clean:
 	rm -f data
